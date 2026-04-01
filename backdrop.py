@@ -86,10 +86,11 @@ class Backdrop:
         color1 = (20, 20, 40)  # Dark blue
         color2 = (0, 0, 0)  # Black
         
-        # Create a repeating pattern based on logical positions (both x and y)
-        pattern_x = (int(logical_x // size) // 2) % 2
-        pattern_y = (int(logical_y // size) // 2) % 2
-        is_light = (pattern_x + pattern_y) % 2 == 0
+        # Create a checkerboard pattern based on tile grid position
+        # This ensures the pattern scrolls smoothly without flipping
+        tile_x = int(logical_x // size) % 2
+        tile_y = int(logical_y // size) % 2
+        is_light = (tile_x + tile_y) % 2 == 0
         
         color = color2 if is_light else color1
         
