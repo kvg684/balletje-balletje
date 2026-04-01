@@ -1,6 +1,7 @@
 """Shuffling state for the game."""
 
 import pygame
+import random
 from states.base_state import BaseGameState
 from shuffle_moves import ShuffleMove
 
@@ -19,21 +20,11 @@ class Shuffling(BaseGameState):
         self.ball_position = ball_position
         self.cups = game.cups
         
-        # Define the shuffle sequence - all 6 transitions repeated twice
-        self.moves = [
-            ShuffleMove("none"),
-            ShuffleMove("l-m"),
-            ShuffleMove("m-r"),
-            ShuffleMove("l-r"),
-            ShuffleMove("l-m-r"),
-            ShuffleMove("r-m-l"),
-            ShuffleMove("none"),
-            ShuffleMove("l-m"),
-            ShuffleMove("m-r"),
-            ShuffleMove("l-r"),
-            ShuffleMove("l-m-r"),
-            ShuffleMove("r-m-l"),
-        ]
+        # Define available shuffle transitions
+        move_types = ["none", "l-m", "m-r", "l-r", "l-m-r", "r-m-l"]
+        
+        # Generate 10 random shuffle moves
+        self.moves = [ShuffleMove(random.choice(move_types)) for _ in range(10)]
         
         self.current_move_index = 0
         self.move_in_progress = False
