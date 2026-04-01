@@ -67,6 +67,11 @@ We have:
 
   let's not do random swaps yet - just repeat these steps sequentially, two times.
 
----
+* The cups now move to the central vertical positions again and the status bar should
+  display the text "which cup has the ball (1-3)?".
 
-Let's stop here, for now.
+* After the user has pressed buttons 1,2,3 or clicked on the cup, reveal the ball.
+  This is done by drawing the ball at the correct location and moving the cups away to the top of the screen.
+  At that point, display the text whether the user was correct or wrong.
+
+If the user presses the space bar, go back to the start screen.

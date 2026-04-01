@@ -12,6 +12,8 @@ class GameState(Enum):
     CUPS_MOVING = "cups_moving"
     CUPS_TO_START = "cups_to_start"
     SHUFFLING = "shuffling"
+    GUESSING = "guessing"
+    REVEAL = "reveal"
 
 
 class Game:
@@ -36,6 +38,7 @@ class Game:
         self.ball_position = None  # Track ball position for cups_moving state
         self.ball_object = None  # Track ball object for cups_moving state
         self.cups = None  # Track cups for shuffling state
+        self.player_guess = None  # Track player's cup guess
         self._load_state(self.current_state)
     
     def _load_state(self, state: GameState):
@@ -56,6 +59,12 @@ class Game:
         elif state.value == "shuffling":
             from states.shuffling import Shuffling
             self.state_instance = Shuffling(self, self.ball_position)
+        elif state.value == "guessing":
+            from states.guessing import Guessing
+            self.state_instance = Guessing(self, self.ball_position)
+        elif state.value == "reveal":
+            from states.reveal import Reveal
+            self.state_instance = Reveal(self, self.ball_position, self.player_guess)
     
     def change_state(self, new_state: GameState):
         """Change to a new game state."""
@@ -73,6 +82,9 @@ class Game:
                     self.running = False
                 elif self.state_instance:
                     self.state_instance.on_key_down(event.key)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if self.state_instance and hasattr(self.state_instance, 'on_mouse_click'):
+                    self.state_instance.on_mouse_click(event.pos)
     
     def update(self, dt: float):
         """Update game logic."""

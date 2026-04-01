@@ -77,7 +77,14 @@ class Shuffling(BaseGameState):
                     if self.current_move_index < len(self.moves):
                         self._execute_next_move()
                     else:
+                        # All moves complete - transition to guessing
                         self.move_in_progress = False
+                        self._transition_to_guessing()
+    
+    def _transition_to_guessing(self):
+        """Transition to guessing state after shuffling completes."""
+        from game import GameState
+        self.game.change_state(GameState.GUESSING)
     
     def draw(self, surface: pygame.Surface):
         """Draw the shuffling state."""
