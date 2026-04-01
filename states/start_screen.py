@@ -2,16 +2,11 @@
 
 import pygame
 from backdrop import Backdrop
+from states.base_state import BaseGameState
 
 
-class StartScreen:
+class StartScreen(BaseGameState):
     """The start screen state of the game."""
-    
-    # Layout constants (from game.py)
-    SCREEN_WIDTH = 1920
-    SCREEN_HEIGHT = 1080
-    BORDER_SIZE = 100
-    MESSAGE_BAR_HEIGHT = 150
     
     def __init__(self, game):
         """Initialize the start screen.
@@ -34,7 +29,6 @@ class StartScreen:
         """
         if key == pygame.K_SPACE and self.waiting_for_space:
             # Transition to next state or start animation
-            print("Space pressed! Starting title exit animation...")
             self.start_title_exit_animation()
     
     def start_title_exit_animation(self):
@@ -60,7 +54,6 @@ class StartScreen:
             if self.title_y < -100 and not self.has_transitioned:
                 self.has_transitioned = True
                 from game import GameState
-                print(f"Title animation complete! Transitioning to BALL_VISIBLE state...")
                 self.game.change_state(GameState.BALL_VISIBLE)
     
     def draw(self, surface: pygame.Surface):
@@ -79,26 +72,7 @@ class StartScreen:
         self._draw_title(surface)
         
         # Draw message bar
-        self._draw_message_bar(surface)
-    
-    def _draw_border(self, surface: pygame.Surface):
-        """Draw the border around the play area."""
-        # Top border
-        pygame.draw.rect(surface, (0, 0, 0), (0, 0, self.SCREEN_WIDTH, self.BORDER_SIZE))
-        # Bottom border (above message bar)
-        pygame.draw.rect(
-            surface,
-            (0, 0, 0),
-            (0, self.SCREEN_HEIGHT - self.MESSAGE_BAR_HEIGHT - self.BORDER_SIZE, self.SCREEN_WIDTH, self.BORDER_SIZE)
-        )
-        # Left border
-        pygame.draw.rect(surface, (0, 0, 0), (0, self.BORDER_SIZE, self.BORDER_SIZE, self.SCREEN_HEIGHT - self.BORDER_SIZE - self.MESSAGE_BAR_HEIGHT))
-        # Right border
-        pygame.draw.rect(
-            surface,
-            (0, 0, 0),
-            (self.SCREEN_WIDTH - self.BORDER_SIZE, self.BORDER_SIZE, self.BORDER_SIZE, self.SCREEN_HEIGHT - self.BORDER_SIZE - self.MESSAGE_BAR_HEIGHT)
-        )
+        self._draw_message_bar(surface, "Press SPACE to start")
     
     def _draw_title(self, surface: pygame.Surface):
         """Draw the title text."""
@@ -126,22 +100,3 @@ class StartScreen:
             
             # Blit to main surface
             surface.blit(title_surface, (0, self.title_y - 280))
-    
-    def _draw_message_bar(self, surface: pygame.Surface):
-        """Draw the message bar at the bottom."""
-        # Draw message bar background
-        message_bar_rect = pygame.Rect(
-            0,
-            self.SCREEN_HEIGHT - self.MESSAGE_BAR_HEIGHT,
-            self.SCREEN_WIDTH,
-            self.MESSAGE_BAR_HEIGHT
-        )
-        pygame.draw.rect(surface, (40, 40, 60), message_bar_rect)
-        pygame.draw.rect(surface, (100, 100, 150), message_bar_rect, 3)
-        
-        # Draw message text - doubled size
-        font = pygame.font.Font(None, 72)
-        message = "Press SPACE to start"
-        text = font.render(message, True, (200, 200, 255))
-        text_rect = text.get_rect(center=(self.SCREEN_WIDTH // 2, self.SCREEN_HEIGHT - self.MESSAGE_BAR_HEIGHT // 2))
-        surface.blit(text, text_rect)
