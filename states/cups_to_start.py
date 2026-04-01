@@ -62,8 +62,8 @@ class CupsToStart(BaseGameState):
         Args:
             dt: Delta time in seconds
         """
-        # Update backdrop (moving down)
-        self.backdrop.update(dt, direction="down")
+        # Update backdrop (moving up - ball hidden by cups)
+        self.backdrop.update(dt, direction="up")
         
         # Update cups
         all_cups_stopped = True

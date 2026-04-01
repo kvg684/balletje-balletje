@@ -31,6 +31,10 @@ class Shuffling(BaseGameState):
         self.wait_time = 0
         self.skip_to_reveal = False  # Flag to skip remaining moves
         
+        # Diagonal movement cycling (clockwise: TL → TR → BR → BL → TL)
+        self.diagonal_directions = ["top_left", "top_right", "bottom_right", "bottom_left"]
+        self.current_diagonal_index = 0
+        
         # Execute the first move
         self._execute_next_move()
         print("Shuffling state initialized!")
@@ -51,7 +55,9 @@ class Shuffling(BaseGameState):
     
     def update(self, dt: float):
         """Update the shuffling state."""
-        self.backdrop.update(dt, direction="down")
+        # Update backdrop (moving diagonally, changing direction each move)
+        current_direction = self.diagonal_directions[self.current_diagonal_index]
+        self.backdrop.update(dt, direction=current_direction)
         
         # Update cups
         for cup in self.cups:
@@ -63,6 +69,9 @@ class Shuffling(BaseGameState):
                 self.wait_time += dt
                 # Wait a moment before starting the next move
                 if self.wait_time > 0.2:
+                    # Advance to next diagonal direction (clockwise)
+                    self.current_diagonal_index = (self.current_diagonal_index + 1) % len(self.diagonal_directions)
+                    
                     if self.skip_to_reveal:
                         # Player pressed SPACE - transition to guessing after current move
                         self.move_in_progress = False
