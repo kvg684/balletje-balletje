@@ -2,6 +2,7 @@
 
 import pygame
 import random
+import math
 from states.base_state import BaseGameState
 import layout
 from cup import Cup
@@ -85,6 +86,16 @@ class Reveal(BaseGameState):
         
         # Start confetti if the player guessed correctly
         self.confetti = Confetti(self.SCREEN_WIDTH, self.SCREEN_HEIGHT) if self.is_correct else None
+
+        # Screen shake + red flash on wrong answer
+        self._shake_timer = 0.0
+        self._shake_duration = 0.6   # seconds
+        self._shake_intensity = 22   # max pixel offset
+        self._flash_timer = 0.0
+        self._flash_duration = 0.9   # seconds
+        if not self.is_correct:
+            self._shake_timer = self._shake_duration
+            self._flash_timer = self._flash_duration
         
         # Map correct cup to position name for display
         self.correct_position_name = self._get_position_name(self.correct_index)
@@ -143,6 +154,12 @@ class Reveal(BaseGameState):
         # Update confetti
         if self.confetti:
             self.confetti.update(dt)
+
+        # Tick down shake and flash
+        if self._shake_timer > 0:
+            self._shake_timer = max(0.0, self._shake_timer - dt)
+        if self._flash_timer > 0:
+            self._flash_timer = max(0.0, self._flash_timer - dt)
     
     def draw(self, surface: pygame.Surface):
         """Draw the reveal state."""
@@ -151,8 +168,10 @@ class Reveal(BaseGameState):
             message = "Goed geraden! Druk op SPATIE"
         else:
             message = f"Helaas! De bal lag bij {self.correct_position_name}. SPATIE"
-        
-        # Draw state with custom content (ball then cups for proper layering)
+
+        # Render scene to a temp surface so we can shake it
+        temp = pygame.Surface((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
+
         def draw_content(s):
             if self.ball:
                 self.ball.draw(s)
@@ -160,5 +179,23 @@ class Reveal(BaseGameState):
                 cup.draw(s)
             if self.confetti:
                 self.confetti.draw(s)
-        
-        self._draw_state(surface, message, draw_content)
+
+        self._draw_state(temp, message, draw_content)
+
+        # Compute shake offset (decaying random jitter)
+        if self._shake_timer > 0:
+            progress = self._shake_timer / self._shake_duration
+            amp = int(self._shake_intensity * progress)
+            ox = random.randint(-amp, amp)
+            oy = random.randint(-amp, amp)
+        else:
+            ox, oy = 0, 0
+
+        surface.blit(temp, (ox, oy))
+
+        # Red flash overlay (drawn directly on screen, not shaken)
+        if self._flash_timer > 0:
+            alpha = int(180 * (self._flash_timer / self._flash_duration))
+            flash = pygame.Surface((self.SCREEN_WIDTH, self.SCREEN_HEIGHT), pygame.SRCALPHA)
+            flash.fill((220, 30, 30, alpha))
+            surface.blit(flash, (0, 0))

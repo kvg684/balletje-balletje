@@ -78,8 +78,8 @@ class StartScreen(BaseGameState):
             title_surface = pygame.Surface((self.SCREEN_WIDTH, 700), pygame.SRCALPHA)
             
             # Render text
-            line1 = font.render("balletje-", True, (200, 200, 255))
-            line2 = font.render("balletje", True, (200, 200, 255))
+            line1 = font.render("Balletje-", True, (200, 200, 255))
+            line2 = font.render("Balletje", True, (200, 200, 255))
             
             # Position lines in center with more vertical space
             line1_rect = line1.get_rect(center=(self.SCREEN_WIDTH // 2, 120))

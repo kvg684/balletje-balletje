@@ -1,97 +1,132 @@
-= BALLETJE-BALLETJE
+# BALLETJE-BALLETJE
 
-I want to re-create a game from the 80's, but in a modern fashion.
+I wanted to re-create a game from the 80's, but in a modern fashion.
 The original game, 'balletje-balletje' was written bij John DRJ Vanderaert for the C64.
 
 In the past, I have created an MSX version in assembly and an Amiga version in C.
 
 The new version should be using pygame, in a 1920x1080 screen.
 
-== Game idea
+## Game idea
 
 The basic game is the 'sham game', i.e. we have three cups that shuffle a ball.
 At the end of the shuffling, the user is asked to tell where the ball is.
 
-== Game backdrop and layout
+## Game backdrop and layout
 
-During the entire game, there's moving backdrop.
-It's geometric, repeating and slightly hypnotic.
+During the entire game, there's a moving geometric backdrop. It is a scrolling checkerboard
+of large (80px) tiles in vivid purple tones, with bold diagonal and cross lines within each
+tile. The tile colours pulse slowly using a sine wave, making the background hypnotic and
+hard to ignore.
 
-Depending on where we are in the game, it is moving down or up, or moving towards one of the corners.
+Depending on where we are in the game, the backdrop scrolls down, up, or towards a corner.
 
-I want to have space for a 100px border surrounding the play field.
+The screen has a 100px black border surrounding the play field.
 
-At the bottom of the screen (reserve 150px), there is a message bar. It should contain the messages
-like "press space bar", "click on the cup" and others.
+At the bottom of the screen (150px reserved) is a message bar with all player prompts.
 
-The cups consist of a brown rounded square, slightly larger than the ball.
-The cups should each display the text "CooTV" in a darker brown in the center of the cup.
+## Cups
 
-== Ball
+The cups are a brown rounded square (200×200px), slightly larger than the ball.
+Each cup displays the text "CooTV" in a darker brown in the centre.
+
+When the player has selected a cup, it is highlighted with a gold border (10px glow behind
+the cup drawn in gold / #FFD700).
+
+## Ball
 
 The ball uses the "Amigo Ball" sprite sheet (amigo_big_strip.png, CC0 license, from opengameart.org).
 It is an animated sprite rendered at 85% of its original frame size (226x220 pixels per frame, 10 frames total).
 The sprite animates continuously wherever the ball is visible.
 
-== Technology
+## Technology
 
-I want the game to be object-oriented.
-I expect a 'cup' class that knows if it has a ball and knows how to move from one to the next position.
+The game is object-oriented, written in Python with pygame.
+A `Cup` class knows whether it has a ball and can animate movement between positions.
 
-== Debugging
+## Game States
 
-While developing, I'd like to see a number in the top-left corner of the cup, with a * if that cup contains the ball.
+### Start screen
 
-== Game States
+Displays "Balletje-" and "Balletje" (two lines) in large italic letters, centred vertically.
+Message bar: "Druk op SPATIE om te starten".
+On SPACE the title animates upward off-screen and the game transitions to Ball Visible.
 
-We have:
+### Ball visible
 
-* a Start screen, displaying "balletje-\nballetje" (thus in 2 lines) in large italic letters in the center.
-  the message bar should displace "press SPACE to start" and indeed wait for the space key.
-* the start text moves up, off screen. It is replaced by a ball, randomly, in one of three locations (left middle right).
-  once the ball is visible, the message bar should again display the SPACE text.
-* the cups move in from the top of the screen and hide the ball. At this point, the cup should register if it hids the ball or not, the ball itself should be hidden.
-* the cups now move to their start positions: left and right move approx one cup height up, whereas the middle cup moves approx one cup down. These are the start positions.
-  the message bar should display "Get ready! Watch the cups..."
-* the cups shuffle around the screen. This is the main game mechanic - cups move to new positions in a set pattern.
-  The shuffling state consists of a number of swaps of two cups.
-  For each swap, consider the relative positions again. this means that the left cup 'l' is no longer cup 'l' after the 'l-m' transtion. He's now the middle cup 'm'.
-  In any transition, all cups should move at the same time and arrive at the same time.
-  That means that their speeds thus vary.
+A ball appears at a random position (left / middle / right).
+Message bar is empty.
+After 1.5 seconds the cups automatically drop in from the top.
 
-  * none: the cups move to the other vertical position.
-  * l-m: cups l and m move horizontally, while cup r moves vertically.
-  * m-r: cups m and r move horizontally, while cup l moves vertically.
-  * l-r: cups l and r move (fast) diagonally, while cup m moves vertically.
-  * l-m-r: the cups 'rotate': left to middle, middle to right, right to left.
-  * r-m-l: the cups 'rotate': right to middle, middle to left, left to right.
+### Cups moving (covering the ball)
 
-* The cups now move to the central vertical positions again and the status bar should
-  display the text "Welke beker? (1-3 of klik)".
+The cups descend from the top; each cup registers whether it covers the ball.
+The ball itself becomes hidden.
+Message bar: "Bekers komen eraan..."
 
-* After the user has pressed buttons 1,2,3 or clicked on a cup, that cup is highlighted
-  (e.g. a gold border around it) and the message bar shows:
-  "Weet je het zeker? (J of N — hulplijn)"
+### Cups to start positions
 
-* If the user presses 'J' (or Enter), reveal the ball as usual:
-  draw the ball at the correct location and move the cups away to the top of the screen,
-  then display whether the user was correct (show confetti!) or wrong.
+Left and right cups move one cup-height up; middle cup moves one cup-height down.
+Message bar: "Klaar? Let op de bekers..."
 
-* If the user presses 'N', a help-line menu is shown. For now the only help line is Monty Hall.
-  (Other help lines may be added later.)
+### Shuffling
 
-* Monty Hall mode: activated when the user presses 'N' at the confirmation screen.
-  The user's already-highlighted cup serves as their initial choice. The flow continues:
-  1. The game (as the "host") reveals one of the remaining cups that does NOT contain the ball.
-     Move the cup goes offscreen at the top.The cup does not return.
-     You need to show that there's no ball: e.g. with an ellipsis?
-     Above the cups, show (in large text) "Monty Hall".
-  2. The message bar then prompts: "Wisselen (W) of Zelfde (Z/Enter)?".
-  3. If the user presses Enter (stay), the game proceeds with their original guess.
-     If the user presses 'W' (wisselen/switch), the game switches their guess (=highlight)
-     to the remaining unopened cup. take a second to move that hightlight.
-  4. The reveal then proceeds as normal: ball is shown, remaining cups move away, result is displayed.
-     If the user was right, again confetti.
-  5. The highlight is removed from the screen.
+The cups execute a fixed sequence of moves (repeated twice):
 
-If the user presses the space bar, go back to the start screen.
+- none  — cups move to the other vertical position.
+- l-m   — l and m swap horizontally; r bobs vertically.
+- m-r   — m and r swap horizontally; l bobs vertically.
+- l-r   — l and r swap diagonally (fast); m bobs vertically.
+- l-m-r — rotate: l→m, m→r, r→l.
+- r-m-l — rotate: r→m, m→l, l→r.
+
+All cups in a transition move simultaneously and arrive at the same time.
+Message bar: "Husselen... (x/y)".
+
+### Guessing — phase 1: picking
+
+Cups return to the central vertical position.
+Message bar: "Welke beker? (1-3 of klik)".
+Player presses 1/2/3 or clicks a cup.
+
+### Guessing — phase 2: confirming
+
+The chosen cup gets a gold highlight.
+Message bar: "Weet je het zeker? (J of N — hulplijn)".
+
+- J or Enter → reveal (see below).
+- N         → Monty Hall mode (see below).
+
+Clicking the highlighted cup confirms; clicking a different cup re-selects.
+
+### Reveal
+
+The ball is shown at its correct location; all cups slide off-screen to the top (0.5s).
+
+- Correct: message "Goed geraden! Druk op SPATIE" + confetti shower.
+- Wrong: message "Helaas! De bal lag bij {positie}. SPATIE" + screen shake (0.6s, ±22px, decaying) + red flash overlay (0.9s, fades from alpha 180).
+SPACE returns to the start screen.
+
+### Monty Hall mode
+
+Activated by pressing N at the confirmation screen.
+The player's already-highlighted cup remains their initial choice.
+
+  1. The host picks a cup that is NOT the player's choice and does NOT have the ball.
+     That cup flies off-screen to the top (1s animation) and stays gone.
+     An ellipsis ("...") is drawn at the spot where it was.
+     "Monty Hall" is displayed in large gold text above the cups.
+     Message bar: "Monty Hall onthult een lege beker..."
+
+  2. Message bar: "Wisselen (W) of Zelfde (Z / Enter)?".
+     - W     → highlight moves to the remaining cup; "Gewisseld!" shown for 1 second,
+               then proceed to Reveal with the new cup.
+     - Z / Enter → proceed to Reveal with the original cup.
+
+  3. Reveal proceeds as normal (confetti on correct, shake+flash on wrong).
+     The highlight is cleared before the reveal.
+
+### Space bar
+
+- Start screen → starts the game (triggers title exit animation)
+- Reveal       → returns to the start screen

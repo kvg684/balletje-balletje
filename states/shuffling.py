@@ -29,7 +29,6 @@ class Shuffling(BaseGameState):
         self.current_move_index = 0
         self.move_in_progress = False
         self.wait_time = 0
-        self.skip_to_reveal = False  # Flag to skip remaining moves
         
         # Diagonal movement cycling (clockwise: TL → TR → BR → BL → TL)
         self.diagonal_directions = ["top_left", "top_right", "bottom_right", "bottom_left"]
@@ -46,12 +45,6 @@ class Shuffling(BaseGameState):
             self.move_in_progress = True
             self.wait_time = 0
             self.current_move_index += 1
-    
-    def on_key_down(self, key: int):
-        """Handle key press events."""
-        if key == pygame.K_SPACE:
-            # Set flag to skip remaining moves after current one completes
-            self.skip_to_reveal = True
     
     def update(self, dt: float):
         """Update the shuffling state."""
@@ -72,11 +65,7 @@ class Shuffling(BaseGameState):
                     # Advance to next diagonal direction (clockwise)
                     self.current_diagonal_index = (self.current_diagonal_index + 1) % len(self.diagonal_directions)
                     
-                    if self.skip_to_reveal:
-                        # Player pressed SPACE - transition to guessing after current move
-                        self.move_in_progress = False
-                        self._transition_to_guessing()
-                    elif self.current_move_index < len(self.moves):
+                    if self.current_move_index < len(self.moves):
                         self._execute_next_move()
                     else:
                         # All moves complete - transition to guessing

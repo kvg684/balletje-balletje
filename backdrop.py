@@ -12,26 +12,22 @@ class Backdrop:
         """Initialize the backdrop with dimensions."""
         self.width = width
         self.height = height
-        self.offset_x = 0.0  # Horizontal offset
-        self.offset_y = 0.0  # Vertical offset
-        self.speed = 80  # pixels per second
-        self.pattern_size = 40  # Size of repeating pattern
-    
+        self.offset_x = 0.0
+        self.offset_y = 0.0
+        self.speed = 140         # pixels per second (faster)
+        self.pattern_size = 80  # bigger tiles = more visible
+        self._time = 0.0         # for colour pulsing
+
     def update(self, dt: float, direction: str = "down"):
-        """Update backdrop position.
-        
-        Args:
-            dt: Delta time in seconds
-            direction: "up", "down", "left", "right", or corners like "top_left", "top_right", 
-                     "bottom_left", "bottom_right", or "random" for random corner movement
-        """
-        # Handle random by picking a random corner
+        """Update backdrop position."""
+        self._time += dt
+
         if direction == "random":
             direction = random.choice(["top_left", "top_right", "bottom_left", "bottom_right"])
-        
+
         dx = 0.0
         dy = 0.0
-        
+
         if direction == "up":
             dy = -self.speed * dt
         elif direction == "down":
@@ -52,53 +48,70 @@ class Backdrop:
         elif direction == "bottom_right":
             dx = self.speed * dt
             dy = self.speed * dt
-        
+
         self.offset_x += dx
         self.offset_y += dy
-    
+
     def draw(self, surface: pygame.Surface):
         """Draw the geometric backdrop to the surface."""
-        # Calculate fractional offsets within the pattern for seamless tiling
         fractional_offset_x = self.offset_x % self.pattern_size
         fractional_offset_y = self.offset_y % self.pattern_size
-        
-        # Draw tiles with offsets applied to create scrolling effect
+
+        # Pulse between two hues over ~3 seconds
+        pulse = (math.sin(self._time * 2.1) + 1) / 2  # 0..1
+
         for y in range(-self.pattern_size, self.height + self.pattern_size, self.pattern_size):
             for x in range(-self.pattern_size, self.width + self.pattern_size, self.pattern_size):
-                # Calculate the logical tile positions (for pattern determination)
                 logical_x = x - self.offset_x
                 logical_y = y - self.offset_y
-                self._draw_pattern_tile(surface, x - fractional_offset_x, y - fractional_offset_y, logical_x, logical_y)
-    
-    def _draw_pattern_tile(self, surface: pygame.Surface, x: float, y: float, logical_x: float, logical_y: float):
-        """Draw a single pattern tile.
-        
-        Args:
-            surface: The pygame surface to draw on
-            x: X coordinate for visual positioning
-            y: Y coordinate for visual positioning
-            logical_x: X coordinate for pattern calculation
-            logical_y: Y coordinate for pattern calculation
-        """
+                self._draw_pattern_tile(
+                    surface,
+                    x - fractional_offset_x,
+                    y - fractional_offset_y,
+                    logical_x, logical_y,
+                    pulse,
+                )
+
+    def _draw_pattern_tile(self, surface: pygame.Surface, x: float, y: float,
+                           logical_x: float, logical_y: float, pulse: float):
+        """Draw a single pattern tile."""
         size = self.pattern_size
-        
-        # Use alternating colors - black and blue boxes
-        color1 = (20, 20, 40)  # Dark blue
-        color2 = (0, 0, 0)  # Black
-        
-        # Create a checkerboard pattern based on tile grid position
-        # This ensures the pattern scrolls smoothly without flipping
+
         tile_x = int(logical_x // size) % 2
         tile_y = int(logical_y // size) % 2
         is_light = (tile_x + tile_y) % 2 == 0
-        
-        color = color2 if is_light else color1
-        
-        # Draw the tile at the visual position
+
+        # High-contrast pulsing colours
+        if is_light:
+            r = int(20 + pulse * 60)
+            g = int(0  + pulse * 20)
+            b = int(120 + pulse * 100)
+            color = (r, g, b)
+            line_color = (
+                int(100 + pulse * 100),
+                int(50  + pulse * 50),
+                int(220 + pulse * 35),
+            )
+        else:
+            r = int(80 - pulse * 60)
+            g = int(0)
+            b = int(30 + pulse * 30)
+            color = (r, g, b)
+            line_color = (
+                int(160 - pulse * 80),
+                int(0),
+                int(80 + pulse * 40),
+            )
+
         rect = pygame.Rect(x, y, size, size)
         pygame.draw.rect(surface, color, rect)
-        
-        # Draw diagonal lines
-        line_color = (60, 60, 120) if is_light else (30, 30, 60)
-        pygame.draw.line(surface, line_color, (x, y), (x + size, y + size), 2)
-        pygame.draw.line(surface, line_color, (x + size, y), (x, y + size), 2)
+
+        # Bold diagonals
+        pygame.draw.line(surface, line_color, (x, y), (x + size, y + size), 3)
+        pygame.draw.line(surface, line_color, (x + size, y), (x, y + size), 3)
+
+        # Extra cross lines to add visual noise
+        mid_x = x + size // 2
+        mid_y = y + size // 2
+        pygame.draw.line(surface, line_color, (x, mid_y), (x + size, mid_y), 1)
+        pygame.draw.line(surface, line_color, (mid_x, y), (mid_x, y + size), 1)
