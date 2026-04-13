@@ -1,18 +1,8 @@
-# BALLETJE-BALLETJE
+# BALLETJE-BALLETJE — Implementation Spec
 
-I wanted to re-create a game from the 80's, but in a modern fashion.
-The original game, 'balletje-balletje' was written bij John DRJ Vanderaert for the C64.
+> For project overview, game rules, and controls see [README.md](README.md).
 
-In the past, I have created an MSX version in assembly and an Amiga version in C.
-
-The new version should be using pygame, in a 1920x1080 screen.
-
-## Game idea
-
-The basic game is the 'sham game', i.e. we have three cups that shuffle a ball.
-At the end of the shuffling, the user is asked to tell where the ball is.
-
-## Game backdrop and layout
+## Layout and backdrop
 
 During the entire game, there's a moving geometric backdrop. It is a scrolling checkerboard
 of large (80px) tiles in vivid purple tones, with bold diagonal and cross lines within each
